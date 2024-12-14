@@ -27,6 +27,7 @@ export default function HomeScreen() {
           if (request.url !== null && request.url.startsWith("https://")) {
             router.navigate({
               pathname: "browser",
+              params: { initialUrl: request.url },
             });
             return false;
           }
