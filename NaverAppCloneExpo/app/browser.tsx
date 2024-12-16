@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import {
   Animated,
   Platform,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -86,6 +87,12 @@ export default function BrowserScreen() {
           iconName="refresh"
           onPress={() => {
             webViewRef.current?.reload();
+          }}
+        />
+        <NavButton
+          iconName="share-outline"
+          onPress={() => {
+            Share.share({ message: url });
           }}
         />
       </View>
