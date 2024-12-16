@@ -1,18 +1,18 @@
 import { router } from "expo-router";
-import { Platform, SafeAreaView, StyleSheet, StatusBar } from "react-native";
+import { SafeAreaView, StyleSheet } from "react-native";
 import WebView from "react-native-webview";
-
-const styles = StyleSheet.create({
-  safearea: {
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    flex: 1,
-  },
-});
+import { useWebViewContext } from "../../components/WebViewProvider";
 
 export default function HomeScreen() {
+  const { addWebView } = useWebViewContext();
+
   return (
     <SafeAreaView style={styles.safearea}>
       <WebView
+        ref={(ref) => {
+          if (!ref) return;
+          addWebView(ref);
+        }}
         source={{ uri: "https://m.naver.com/" }}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -38,3 +38,9 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safearea: {
+    flex: 1,
+  },
+});

@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import WebView from "react-native-webview";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useWebViewContext } from "../components/WebViewProvider";
 
 export default function BrowserScreen() {
   const params = useLocalSearchParams();
@@ -25,6 +26,7 @@ export default function BrowserScreen() {
     [url],
   );
   const webViewRef = useRef<WebView | null>(null);
+  const { addWebView } = useWebViewContext();
 
   return (
     <SafeAreaView style={styles.safearea}>
@@ -45,7 +47,11 @@ export default function BrowserScreen() {
         />
       </View>
       <WebView
-        ref={webViewRef}
+        ref={(ref) => {
+          if (!ref) return;
+          webViewRef.current = ref;
+          addWebView(ref);
+        }}
         source={{ uri: params.initialUrl as string }}
         onNavigationStateChange={(e) => {
           setUrl(e.url);

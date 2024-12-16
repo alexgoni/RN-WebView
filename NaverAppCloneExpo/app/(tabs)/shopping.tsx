@@ -9,12 +9,14 @@ import {
   StyleSheet,
 } from "react-native";
 import WebView from "react-native-webview";
+import { useWebViewContext } from "../../components/WebViewProvider";
 
 const SHOPPING_HOME_URL = "https://shopping.naver.com/";
 
 export default function ShoppingScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const webViewRef = useRef<WebView | null>(null);
+  const { addWebView } = useWebViewContext();
 
   const onRefresh = useCallback(() => {
     if (!webViewRef.current) return;
@@ -30,7 +32,11 @@ export default function ShoppingScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
         }>
         <WebView
-          ref={webViewRef}
+          ref={(ref) => {
+            if (!ref) return;
+            webViewRef.current = ref;
+            addWebView(ref);
+          }}
           source={{ uri: SHOPPING_HOME_URL }}
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
