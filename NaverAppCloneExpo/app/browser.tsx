@@ -15,6 +15,16 @@ import WebView from "react-native-webview";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useWebViewContext } from "../components/WebViewProvider";
 
+const DISABLE_PINCH_ZOOM = `(function() {
+  const meta = document.createElement('meta');
+  meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+  meta.setAttribute('name', 'viewport');
+  document.getElementsByTagName('head')[0].appendChild(meta);
+
+  document.body.style['user-select'] = 'none';
+  document.body.style['-webkit-user-select'] = 'none';
+})();`;
+
 export default function BrowserScreen() {
   const params = useLocalSearchParams();
   const progressAnim = useRef(new Animated.Value(0)).current;
@@ -64,6 +74,9 @@ export default function BrowserScreen() {
         onLoadEnd={() => {
           progressAnim.setValue(0);
         }}
+        injectedJavaScript={DISABLE_PINCH_ZOOM}
+        onMessage={() => {}}
+        allowsLinkPreview={false}
       />
       <View style={styles.navigator}>
         <TouchableOpacity

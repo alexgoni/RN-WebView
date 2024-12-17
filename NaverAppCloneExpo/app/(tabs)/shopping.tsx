@@ -1,15 +1,14 @@
 import { router } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
-  Platform,
   RefreshControl,
   SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
 } from "react-native";
 import WebView from "react-native-webview";
 import { useWebViewContext } from "../../components/WebViewProvider";
+import React from "react";
 
 const SHOPPING_HOME_URL = "https://shopping.naver.com/";
 
@@ -71,7 +70,6 @@ export default function ShoppingScreen() {
 
 const styles = StyleSheet.create({
   safearea: {
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     flex: 1,
   },
 });

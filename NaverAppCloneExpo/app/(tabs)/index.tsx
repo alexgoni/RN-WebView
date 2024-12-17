@@ -3,10 +3,23 @@ import { SafeAreaView, StyleSheet } from "react-native";
 import WebView from "react-native-webview";
 import { useWebViewContext } from "../../components/WebViewProvider";
 import useLogin from "../../hooks/useLogin";
+import { useBackHandler } from "@react-native-community/hooks";
+import { useRef, useState } from "react";
 
 export default function HomeScreen() {
   const { addWebView } = useWebViewContext();
   const { loadLoggedIn, onMessage } = useLogin();
+  const webViewRef = useRef<WebView | null>(null);
+  const [canGoBack, setCanGoBack] = useState(false);
+
+  useBackHandler(() => {
+    if (webViewRef.current && canGoBack) {
+      webViewRef.current?.goBack();
+      return true;
+    }
+
+    return false;
+  });
 
   return (
     <SafeAreaView style={styles.safearea}>
@@ -14,6 +27,7 @@ export default function HomeScreen() {
         ref={(ref) => {
           if (!ref) return;
           addWebView(ref);
+          webViewRef.current = ref;
         }}
         source={{ uri: "https://m.naver.com/" }}
         showsVerticalScrollIndicator={false}
@@ -40,6 +54,9 @@ export default function HomeScreen() {
           loadLoggedIn();
         }}
         onMessage={onMessage}
+        onNavigationStateChange={(e) => {
+          setCanGoBack(e.canGoBack);
+        }}
       />
     </SafeAreaView>
   );
