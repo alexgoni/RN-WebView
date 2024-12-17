@@ -1,16 +1,21 @@
 import {
   createContext,
+  Dispatch,
   MutableRefObject,
   ReactNode,
+  SetStateAction,
   useCallback,
   useContext,
   useRef,
+  useState,
 } from "react";
 import WebView from "react-native-webview";
 
 interface WebViewContextType {
   webViewRefs: MutableRefObject<WebView[]>;
   addWebView: (webView: WebView) => void;
+  isLoggedIn: boolean;
+  setIsLoggedIn: Dispatch<SetStateAction<boolean>>;
 }
 
 const WebViewContext = createContext<WebViewContextType | null>(null);
@@ -20,9 +25,11 @@ export function WebViewProvider({ children }: { children: ReactNode }) {
   const addWebView = useCallback((webView: WebView) => {
     webViewRefs.current.push(webView);
   }, []);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
-    <WebViewContext.Provider value={{ webViewRefs, addWebView }}>
+    <WebViewContext.Provider
+      value={{ webViewRefs, addWebView, isLoggedIn, setIsLoggedIn }}>
       {children}
     </WebViewContext.Provider>
   );

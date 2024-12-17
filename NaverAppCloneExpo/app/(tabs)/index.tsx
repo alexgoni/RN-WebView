@@ -2,9 +2,11 @@ import { router } from "expo-router";
 import { SafeAreaView, StyleSheet } from "react-native";
 import WebView from "react-native-webview";
 import { useWebViewContext } from "../../components/WebViewProvider";
+import useLogin from "../../hooks/useLogin";
 
 export default function HomeScreen() {
   const { addWebView } = useWebViewContext();
+  const { loadLoggedIn, onMessage } = useLogin();
 
   return (
     <SafeAreaView style={styles.safearea}>
@@ -34,6 +36,10 @@ export default function HomeScreen() {
 
           return true;
         }}
+        onLoadEnd={() => {
+          loadLoggedIn();
+        }}
+        onMessage={onMessage}
       />
     </SafeAreaView>
   );
