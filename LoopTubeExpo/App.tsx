@@ -1,6 +1,8 @@
 import {
   Alert,
+  Animated,
   Dimensions,
+  PanResponder,
   Platform,
   SafeAreaView,
   StatusBar,
@@ -35,6 +37,31 @@ export default function App() {
   const [durationInSec, setDurationInSec] = useState(0);
   const [currentTimeInSec, setCurrentTimeInSec] = useState(0);
   const webViewRef = useRef<WebView | null>(null);
+  const seekBarAnimRef = useRef(new Animated.Value(0));
+  const durationInSecRef = useRef(durationInSec);
+  durationInSecRef.current = durationInSec;
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        webViewRef.current?.injectJavaScript("player.pauseVideo();");
+      },
+      onPanResponderMove: (e, gestureState) => {
+        const newTimeInSec =
+          (gestureState.moveX / YT_WIDTH) * durationInSecRef.current;
+        seekBarAnimRef.current.setValue(newTimeInSec);
+      },
+      onPanResponderRelease: (e, gestureState) => {
+        const newTimeInSec =
+          (gestureState.moveX / YT_WIDTH) * durationInSecRef.current;
+        webViewRef.current?.injectJavaScript(
+          `player.seekTo(${newTimeInSec}, true);`,
+        );
+        webViewRef.current?.injectJavaScript("player.playVideo();");
+      },
+    }),
+  );
 
   const onPressOpenLink = useCallback(() => {
     const {
@@ -124,6 +151,14 @@ export default function App() {
     }
   }, [isPlaying]);
 
+  useEffect(() => {
+    Animated.timing(seekBarAnimRef.current, {
+      toValue: currentTimeInSec,
+      duration: 50,
+      useNativeDriver: false,
+    }).start();
+  }, [currentTimeInSec]);
+
   return (
     <SafeAreaView style={styles.safearea}>
       <View style={styles.inputContainer}>
@@ -158,6 +193,34 @@ export default function App() {
             }}
           />
         )}
+      </View>
+      <View
+        style={styles.seekBarBackground}
+        {...panResponder.current.panHandlers}
+      >
+        <Animated.View
+          style={[
+            styles.seekBarProgress,
+            {
+              width: seekBarAnimRef.current.interpolate({
+                inputRange: [0, durationInSec],
+                outputRange: ["0%", "100%"],
+              }),
+            },
+          ]}
+        />
+        <Animated.View
+          hitSlop={{ top: 100, bottom: 100, left: 100, right: 100 }}
+          style={[
+            styles.seekBarThumb,
+            {
+              left: seekBarAnimRef.current.interpolate({
+                inputRange: [0, durationInSec],
+                outputRange: ["0%", "100%"],
+              }),
+            },
+          ]}
+        />
       </View>
 
       <Text style={styles.timeText}>
@@ -229,5 +292,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 15,
     marginRight: 20,
+  },
+  seekBarBackground: {
+    height: 3,
+    backgroundColor: "#d4d4d4",
+    pointerEvents: "box-none",
+  },
+  seekBarProgress: {
+    height: 3,
+    width: "0%",
+    backgroundColor: "#00dda8",
+    pointerEvents: "none",
+  },
+  seekBarThumb: {
+    width: 14,
+    height: 14,
+    backgroundColor: "#00dda8",
+    borderRadius: "50%",
+    position: "absolute",
+    top: (-14 + 3) / 2,
+    left: 0,
   },
 });
