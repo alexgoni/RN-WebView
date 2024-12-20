@@ -36,6 +36,9 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [durationInSec, setDurationInSec] = useState(0);
   const [currentTimeInSec, setCurrentTimeInSec] = useState(0);
+  const [repeatStartInSec, setRepeatStartInSec] = useState<number | null>(null);
+  const [repeatEndInSec, setRepeatEndInSec] = useState<number | null>(null);
+  const [isRepeat, setIsRepeat] = useState(false);
   const webViewRef = useRef<WebView | null>(null);
   const seekBarAnimRef = useRef(new Animated.Value(0));
   const durationInSecRef = useRef(durationInSec);
@@ -80,6 +83,19 @@ export default function App() {
   const onPressPause = useCallback(() => {
     if (!webViewRef.current) return;
     webViewRef.current.injectJavaScript("player.pauseVideo();");
+  }, []);
+
+  const onPressSetRepeatTime = useCallback(() => {
+    if (repeatStartInSec === null) setRepeatStartInSec(currentTimeInSec);
+    else if (repeatEndInSec === null) setRepeatEndInSec(currentTimeInSec);
+    else {
+      setRepeatStartInSec(null);
+      setRepeatEndInSec(null);
+    }
+  }, [currentTimeInSec, repeatStartInSec, repeatEndInSec]);
+
+  const onPressRepeat = useCallback(() => {
+    setIsRepeat((prev) => !prev);
   }, []);
 
   const source = useMemo(() => {
@@ -159,6 +175,16 @@ export default function App() {
     }).start();
   }, [currentTimeInSec]);
 
+  useEffect(() => {
+    if (isRepeat && repeatStartInSec && repeatEndInSec) {
+      if (currentTimeInSec > repeatEndInSec) {
+        webViewRef.current?.injectJavaScript(
+          `player.seekTo(${repeatStartInSec}, true);`,
+        );
+      }
+    }
+  }, [isRepeat, currentTimeInSec, repeatStartInSec, repeatEndInSec]);
+
   return (
     <SafeAreaView style={styles.safearea}>
       <View style={styles.inputContainer}>
@@ -191,6 +217,7 @@ export default function App() {
               if (type === "duration") setDurationInSec(data);
               if (type === "current-time") setCurrentTimeInSec(data);
             }}
+            webviewDebuggingEnabled
           />
         )}
       </View>
@@ -221,6 +248,22 @@ export default function App() {
             },
           ]}
         />
+        {repeatStartInSec && (
+          <View
+            style={[
+              styles.repeat,
+              { left: (repeatStartInSec / durationInSec) * YT_WIDTH },
+            ]}
+          />
+        )}
+        {repeatEndInSec && (
+          <View
+            style={[
+              styles.repeat,
+              { left: (repeatEndInSec / durationInSec) * YT_WIDTH },
+            ]}
+          />
+        )}
       </View>
 
       <Text style={styles.timeText}>
@@ -228,6 +271,14 @@ export default function App() {
         {formatTime(Math.floor(durationInSec))}
       </Text>
       <View style={styles.controller}>
+        <TouchableOpacity>
+          <Icon
+            name="data-array"
+            size={28}
+            color="#d9d9d9"
+            onPress={onPressSetRepeatTime}
+          />
+        </TouchableOpacity>
         {!isPlaying ? (
           <TouchableOpacity style={styles.playButton} onPress={onPressPlay}>
             <Icon name="play-circle" size={40} color="#00dda8" />
@@ -237,6 +288,13 @@ export default function App() {
             <Icon name="pause-circle" size={40} color="#e5e5ea" />
           </TouchableOpacity>
         )}
+        <TouchableOpacity onPress={onPressRepeat}>
+          <Icon
+            name="repeat"
+            size={28}
+            color={isRepeat ? "#00dda8" : "#e5e5ea"}
+          />
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -279,6 +337,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 72,
     alignItems: "center",
     justifyContent: "center",
+    gap: 54,
   },
   playButton: {
     width: 50,
@@ -308,6 +367,15 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     backgroundColor: "#00dda8",
+    borderRadius: "50%",
+    position: "absolute",
+    top: (-14 + 3) / 2,
+    left: 0,
+  },
+  repeat: {
+    width: 14,
+    height: 14,
+    backgroundColor: "red",
     borderRadius: "50%",
     position: "absolute",
     top: (-14 + 3) / 2,
