@@ -61,6 +61,12 @@ export default function RecoderPage() {
           stream.getAudioTracks().forEach((track) => track.stop());
         };
         mediaRecorder.start();
+      })
+      .catch((error) => {
+        console.error("Error accessing media devices:", error);
+        alert(
+          "녹음 장치를 사용할 수 없습니다. 마이크를 연결하거나 권한을 확인하세요."
+        );
       });
   };
 
